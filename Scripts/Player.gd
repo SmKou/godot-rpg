@@ -1,11 +1,12 @@
 extends CharacterBody2D
 
+@onready var anim_sprite = $AnimatedSprite2D
+
 @export var speed = 50
-const JUMP_VELOCITY = -400.0
 
-# Get the gravity from the project settings to be synced with RigidBody nodes.
-var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
-
+var new_direction = Vector2(0, 1)
+var animation
+var is_attacking = false
 
 func _physics_process(delta):
 	var direction: Vector2
@@ -15,23 +16,51 @@ func _physics_process(delta):
 	if abs(direction.x) == 1 and abs(direction.y) == 1:
 		direction = direction.normalized()
 		
+	if Input.is_action_pressed("ui_sprint"):
+		speed = 100
+	elif Input.is_action_just_released("ui_sprint"):
+		speed = 50
+		
 	var movement = speed * direction * delta
-	move_and_collide(movement)
-	
-	## Add the gravity.
-	#if not is_on_floor():
-		#velocity.y += gravity * delta
-#
-	## Handle jump.
-	#if Input.is_action_just_pressed("ui_accept") and is_on_floor():
-		#velocity.y = JUMP_VELOCITY
-#
-	## Get the input direction and handle the movement/deceleration.
-	## As good practice, you should replace UI actions with custom gameplay actions.
-	#var direction = Input.get_axis("ui_left", "ui_right")
-	#if direction:
-		#velocity.x = direction * SPEED
-	#else:
-		#velocity.x = move_toward(velocity.x, 0, SPEED)
+	if is_attacking == false:
+		move_and_collide(movement)
+		player_animations(direction)
+		
+	if !Input.is_anything_pressed():
+		if is_attacking == false:
+			animation = "idle_" + returned_direction(new_direction)
 
-	move_and_slide()
+func _input(event):
+	if event.is_action_pressed("ui_attack"):
+		is_attacking = true
+		var animation = "attack_" + returned_direction(new_direction)
+		anim_sprite.play(animation)
+
+func player_animations(direction: Vector2):
+	if direction != Vector2.ZERO:
+		new_direction = direction
+		animation = "walk_" + returned_direction(new_direction)
+		anim_sprite.play(animation)
+	else:
+		animation = "idle_" + returned_direction(new_direction)
+		anim_sprite.play(animation)
+		
+func returned_direction(direction : Vector2):
+	var normalized_direction = direction.normalized()
+	var default_return = "side"
+	
+	if normalized_direction.y > 0:
+		return "down"
+	elif normalized_direction.y < 0:
+		return "up"
+	elif normalized_direction.x > 0:
+		$AnimatedSprite2D.flip_h = false
+		return "side"
+	elif normalized_direction.x < 0:
+		$AnimatedSprite2D.flip_h = true
+		return "side"
+		
+	return default_return
+
+func _on_animated_sprite_2d_animation_finished():
+	is_attacking = false
