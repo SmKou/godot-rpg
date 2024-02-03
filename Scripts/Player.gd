@@ -1,14 +1,41 @@
 extends CharacterBody2D
 
 @onready var anim_sprite = $AnimatedSprite2D
+@onready var health_bar = $UI/HealthBar
+@onready var stamina_bar = $UI/StaminaBar
 
 @export var speed = 50
-
 var new_direction = Vector2(0, 1)
 var animation
 var is_attacking = false
 
+# UI variables
+var health = 100
+var max_health = 100
+var regen_health = 1
+var stamina = 100
+var max_stamina = 100
+var regen_stamina = 5
+
+# Custom signals
+signal health_updated
+signal stamina_updated
+
+func _ready():
+	health_updated.connect(health_bar.update_health_ui)
+	stamina_updated.connect(stamina_bar.update_stamina_ui)
+
 func _physics_process(delta):
+	var updated_health = min(health + regen_health * delta, max_health)
+	if updated_health != health:
+		health = updated_health
+		health_updated.emit(health, max_health)
+		
+	var updated_stamina = min(stamina + regen_stamina * delta, max_stamina)
+	if updated_stamina != stamina:
+		stamina = updated_stamina
+		stamina_updated.emit(stamina, max_stamina)
+	
 	var direction: Vector2
 	direction.x = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
 	direction.y = Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
@@ -17,7 +44,10 @@ func _physics_process(delta):
 		direction = direction.normalized()
 		
 	if Input.is_action_pressed("ui_sprint"):
-		speed = 100
+		if stamina >= 25:
+			speed = 100
+			stamina = stamina - 5
+			stamina_updated.emit(stamina, max_stamina)
 	elif Input.is_action_just_released("ui_sprint"):
 		speed = 50
 		

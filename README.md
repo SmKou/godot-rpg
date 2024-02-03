@@ -11,6 +11,7 @@ Sample project based on tutorial: https://dev.to/christinec_dev/lets-learn-godot
 	  - CollisionShape2D: Capsule
 	  - AnimatedSprite2D: Animation/SpriteFrames
     Add animations (AnimatedSprite2D)
+    Add gui (health and stamina bar)
 
 
 ## Notes
