@@ -70,5 +70,11 @@ func _physics_processing(delta):
     move_and_slide()
 ```
 
+Tilemap: Grid for tiles from tileset to build level or map
+- setup: change properties (name, id, etc.) of tileset
+- select: (post-add layers) configure properties of tiles
+- paint: apply property to tiles
+Tileset: Collection of tiles used to build level
+
 ## Known Bugs
 - If player in side: shoot enters infinite loop
